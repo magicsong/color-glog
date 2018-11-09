@@ -1,10 +1,10 @@
-# Colorize output of glog
+# Colorized output of glog
 
-This glog forks from the official https://github.com/golang/glog, the only difference between them is the console output of this glog is colorized like following:
-![image](screenshot.png)
+This `glog` forks from the official https://github.com/golang/glog, the only difference between them is the console output of this `glog` is **colorized** like following:
 
-Add  `-color=true ` to enable this feature
+  ![image](screenshot.png)
 
+Add  `-color=true ` to enable this feature, don't forget to set `-logtostderr=true` or `-alsologtostderr=true` if you want to see full logs.
 
 *****
 
