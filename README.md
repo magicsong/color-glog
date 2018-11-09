@@ -4,7 +4,7 @@ This `glog` forks from the official https://github.com/golang/glog, the only dif
 
   ![image](screenshot.png)
 
-Add  `-color=true ` to enable this feature, don't forget to set `-logtostderr=true` or `-alsologtostderr=true` if you want to see full logs.
+Add  `-color=true ` to enable this feature, don't forget to set `-logtostderr=true` or `-alsologtostderr=true` if you want to see full logs. Set `-color=false` remove this feature
 
 *****
 
