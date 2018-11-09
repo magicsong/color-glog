@@ -86,6 +86,8 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/fatih/color"
 )
 
 // severity identifies the sort of log: info, warning etc. It also implements
@@ -113,6 +115,8 @@ var severityName = []string{
 	errorLog:   "ERROR",
 	fatalLog:   "FATAL",
 }
+
+type colorFunc func(a ...interface{}) string
 
 // get returns the value of the severity.
 func (s *severity) get() severity {
@@ -402,6 +406,7 @@ func init() {
 	flag.Var(&logging.stderrThreshold, "stderrthreshold", "logs at or above this threshold go to stderr")
 	flag.Var(&logging.vmodule, "vmodule", "comma-separated list of pattern=N settings for file-filtered logging")
 	flag.Var(&logging.traceLocation, "log_backtrace_at", "when logging hits line file:N, emit a stack trace")
+	flag.BoolVar(&logging.color, "color", false, "colorize the console output")
 
 	// Default stderrThreshold is ERROR.
 	logging.stderrThreshold = errorLog
@@ -453,6 +458,7 @@ type loggingT struct {
 	// safely using atomic.LoadInt32.
 	vmodule   moduleSpec // The state of the -vmodule flag.
 	verbosity Level      // V logging level, the value of the -v flag/
+	color     bool       // color flag, make the output nicer
 }
 
 // buffer holds a byte Buffer for reuse. The zero value is ready for use.
@@ -627,9 +633,24 @@ func (buf *buffer) someDigits(i, d int) int {
 	return copy(buf.tmp[i:], buf.tmp[j:])
 }
 
+func getColorFunc(s severity) colorFunc {
+	switch s {
+	case errorLog, fatalLog:
+		return color.New(color.FgRed).SprintFunc()
+	case warningLog:
+		return color.New(color.FgYellow).SprintFunc()
+	default:
+		return color.New(color.FgCyan).SprintFunc()
+	}
+}
 func (l *loggingT) println(s severity, args ...interface{}) {
 	buf, file, line := l.header(s, 0)
-	fmt.Fprintln(buf, args...)
+	if l.color {
+		col := getColorFunc(s)
+		fmt.Fprintln(buf, col(args...))
+	} else {
+		fmt.Fprintln(buf, args...)
+	}
 	l.output(s, buf, file, line, false)
 }
 
@@ -639,7 +660,12 @@ func (l *loggingT) print(s severity, args ...interface{}) {
 
 func (l *loggingT) printDepth(s severity, depth int, args ...interface{}) {
 	buf, file, line := l.header(s, depth)
-	fmt.Fprint(buf, args...)
+	if l.color {
+		col := getColorFunc(s)
+		fmt.Fprint(buf, col(args...))
+	} else {
+		fmt.Fprint(buf, args...)
+	}
 	if buf.Bytes()[buf.Len()-1] != '\n' {
 		buf.WriteByte('\n')
 	}
@@ -648,7 +674,12 @@ func (l *loggingT) printDepth(s severity, depth int, args ...interface{}) {
 
 func (l *loggingT) printf(s severity, format string, args ...interface{}) {
 	buf, file, line := l.header(s, 0)
-	fmt.Fprintf(buf, format, args...)
+	if l.color {
+		col := getColorFunc(s)
+		fmt.Fprintf(buf, format, col(args...))
+	} else {
+		fmt.Fprintf(buf, format, args...)
+	}
 	if buf.Bytes()[buf.Len()-1] != '\n' {
 		buf.WriteByte('\n')
 	}
@@ -660,7 +691,12 @@ func (l *loggingT) printf(s severity, format string, args ...interface{}) {
 // will also appear in the log file unless --logtostderr is set.
 func (l *loggingT) printWithFileLine(s severity, file string, line int, alsoToStderr bool, args ...interface{}) {
 	buf := l.formatHeader(s, file, line)
-	fmt.Fprint(buf, args...)
+	if l.color {
+		col := getColorFunc(s)
+		fmt.Fprint(buf, col(args...))
+	} else {
+		fmt.Fprint(buf, args...)
+	}
 	if buf.Bytes()[buf.Len()-1] != '\n' {
 		buf.WriteByte('\n')
 	}

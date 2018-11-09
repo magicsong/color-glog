@@ -1,4 +1,15 @@
-glog
+# Colorize output of glog
+
+This glog forks from the official https://github.com/golang/glog, the only difference between them is the console output of this glog is colorized like following:
+![image](screenshot.png)
+
+Add  `-color=true ` to enable this feature
+
+
+*****
+
+# The original post
+## glog
 ====
 
 Leveled execution logs for Go.
@@ -41,4 +52,4 @@ used inside Google. The master copy of the source lives inside
 Google, not here. The code in this repo is for export only and is not itself
 under development. Feature requests will be ignored.
 
-Send bug reports to golang-nuts@googlegroups.com.
+
