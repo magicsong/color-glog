@@ -117,6 +117,7 @@ var severityName = []string{
 }
 
 type colorFunc func(a ...interface{}) string
+type colorfFunc func(format string, a ...interface{}) string
 
 // get returns the value of the severity.
 func (s *severity) get() severity {
@@ -643,6 +644,16 @@ func getColorFunc(s severity) colorFunc {
 		return color.New(color.FgCyan).SprintFunc()
 	}
 }
+func getColorfFunc(s severity) colorfFunc {
+	switch s {
+	case errorLog, fatalLog:
+		return color.New(color.FgRed).SprintfFunc()
+	case warningLog:
+		return color.New(color.FgYellow).SprintfFunc()
+	default:
+		return color.New(color.FgCyan).SprintfFunc()
+	}
+}
 func (l *loggingT) println(s severity, args ...interface{}) {
 	buf, file, line := l.header(s, 0)
 	if l.color {
@@ -675,8 +686,8 @@ func (l *loggingT) printDepth(s severity, depth int, args ...interface{}) {
 func (l *loggingT) printf(s severity, format string, args ...interface{}) {
 	buf, file, line := l.header(s, 0)
 	if l.color {
-		col := getColorFunc(s)
-		fmt.Fprintf(buf, format, col(args...))
+		col := getColorfFunc(s)
+		fmt.Fprint(buf, col(format, args...))
 	} else {
 		fmt.Fprintf(buf, format, args...)
 	}
